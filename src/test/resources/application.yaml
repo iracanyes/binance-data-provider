@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: binance-api
+  banner: classpath:/banner-binance-api.txt
+  cloud:
+    vault:
+      uri: https://localhost:8200
+      scheme: https
+      host: localhost
+      port: 8200
+      authentication: TOKEN
+      token: ${VAULT_TOKEN}
+      tls:
+        enabled: true
+      kv:
+        enabled: true
