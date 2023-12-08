@@ -31,3 +31,61 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+#===== Application ====================
+# Jetbrains IDE
+.idea/**
+# Documentation
+docs
+# backup files
+**/*.save
+*.local.*
+
+# Environment files
+.env
+**/.env
+
+.env.local
+**/.env.local
+
+# Certificates
+**/*.pem
+
+
+# Keystore and truststore
+**/*.p12
+**/*.jks
+
+# Docker
+data
+
+# Vault
+docker/vault/client/tls/*
+docker/vault/server/**
+
+# MongoDB
+docker/mongo/data/**
+docker/mongo/tls/mongodb.keyfile
+docker/mongo/tls
+docker/mongo/tls/certs/*
+
+# Mongo Express
+# Files are used
+docker/mongo-express/
+
+# Kafka
+docker/kafka/data
+
+# ElasticSearch
+docker/elasticsearch/data
+
+
+#==== Vault data ===========
+docker/vault/server/data
+docker/vault/server/logs
+# Vault
+docker/vault/**/data
+docker/vault/**/tls/*.crt
+docker/vault/**/tls/*.key
+docker/vault/client/run.sh

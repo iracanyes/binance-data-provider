@@ -1,0 +1,11 @@
+com\iracanyes\fintech\jeny\binance\data\provider\bootstrap\MongoConfig.class
+com\iracanyes\fintech\jeny\binance\data\provider\account\repository\AccountRepository.class
+com\iracanyes\fintech\jeny\binance\data\provider\helper\HmacSha256Signature.class
+com\iracanyes\fintech\jeny\binance\data\provider\utils\BinanceHttpErrorCode.class
+com\iracanyes\fintech\jeny\binance\data\provider\utils\BinanceConstants.class
+com\iracanyes\fintech\jeny\binance\data\provider\helper\VaultService.class
+com\iracanyes\fintech\jeny\binance\data\provider\BinanceDataProviderApplication.class
+com\iracanyes\fintech\jeny\binance\data\provider\bootstrap\WebSocketConfiguration.class
+com\iracanyes\fintech\jeny\binance\data\provider\utils\BinanceJsonKeys.class
+com\iracanyes\fintech\jeny\binance\data\provider\bootstrap\BinanceApiConnectionConfiguration.class
+com\iracanyes\fintech\jeny\binance\data\provider\bootstrap\VaultConfig.class

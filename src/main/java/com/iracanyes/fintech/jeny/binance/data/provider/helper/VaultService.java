@@ -1,6 +1,7 @@
 package com.iracanyes.fintech.jeny.binance.data.provider.helper;
 
 import com.iracanyes.fintech.jeny.core.model.Account;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
@@ -9,6 +10,7 @@ import org.springframework.vault.support.VaultResponse;
 
 @Service
 public class VaultService {
+
 
   private VaultTemplate vaultTemplate;
 

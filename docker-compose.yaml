@@ -1,0 +1,137 @@
+version: '3.9'
+services:
+#  binance-data-provider:
+#    build:
+#      context: .
+#      dockerfile: ./docker/spring/Dockerfile
+#    depends_on:
+#      #- consul
+#      - mongo
+#      - mongo-init-replica
+#    ports:
+#      - "80:9000"
+#    networks:
+#      binance-data-provider:
+#        ipv4_address: 172.19.5.200
+  mongo:
+    # Important: to scale the service do not use custom container name
+    container_name: mongo
+    #image: mongo:latest
+    build:
+      context: .
+      dockerfile: ./docker/mongo/Dockerfile
+    #restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${JENY_BNC_DATA_MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${JENY_BNC_DATA_MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${JENY_BNC_DATA_MONGO_DATABASE}
+    networks:
+      binance-data-provider:
+        ipv4_address: 172.19.5.100
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo/binance-data-provider/db:/data/db
+      - ./docker/mongo/conf:/opt/mongo/conf
+      - ./docker/mongo/tls/certs/mongodb.pem:/opt/mongo/tls/certs/mongodb.pem
+      - ./docker/mongo/tls/certs/mongo-ca.pem:/opt/mongo/tls/certs/mongo-ca.pem
+    # Issue :
+    # 1. requireTLS option bloc mongo-express connection. => Set: preferTLS
+    # 2. setting --replSet rs0, mongo will automatically elect the primary
+    # command: mongod --bind_ip localhost,mongo --port 27017 --replSet rs0 --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --tlsAllowInvalidHostnames --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+    command: mongod --bind_ip localhost,mongo --port 27017 --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --tlsAllowInvalidHostnames --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+  mongo-1:
+    # Important: to scale the service do not use custom container name
+    container_name: mongo-1
+    #image: mongo:latest
+    build:
+      context: .
+      dockerfile: ./docker/mongo/Dockerfile
+    #restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${JENY_BNC_DATA_MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${JENY_BNC_DATA_MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${JENY_BNC_DATA_MONGO_DATABASE}
+    networks:
+      binance-data-provider:
+        ipv4_address: 172.19.5.101
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./data/mongo/binance-data-provider/db-1:/data/db
+      - ./docker/mongo/conf:/opt/mongo/conf
+      - ./docker/mongo/tls/certs/mongodb-1.pem:/opt/mongo/tls/certs/mongodb-1.pem
+      - ./docker/mongo/tls/certs/mongo-ca.pem:/opt/mongo/tls/certs/mongo-ca.pem
+    # Issue :
+    # 1. requireTLS option bloc mongo-express connection. => Set: preferTLS
+    # 2. setting --replSet rs0, mongo will automatically elect the primary
+    # command: mongod --bind_ip localhost,mongo-1 --port 27018 --replSet rs0 --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb-1.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+    command: mongod --bind_ip localhost,mongo-1 --port 27018 --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb-1.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+  mongo-2:
+    # Important: to scale the service do not use custom container name
+    container_name: mongo-2
+    #image: mongo:latest
+    build:
+      context: .
+      dockerfile: ./docker/mongo/Dockerfile
+    #restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${JENY_BNC_DATA_MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${JENY_BNC_DATA_MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${JENY_BNC_DATA_MONGO_DATABASE}
+    networks:
+      binance-data-provider:
+        ipv4_address: 172.19.5.102
+    ports:
+      - "27019:27017"
+    volumes:
+      - ./data/mongo/binance-data-provider/db-2:/data/db
+      - ./docker/mongo/conf:/opt/mongo/conf
+      - ./docker/mongo/tls/certs/mongodb-2.pem:/opt/mongo/tls/certs/mongodb-2.pem
+      - ./docker/mongo/tls/certs/mongo-ca.pem:/opt/mongo/tls/certs/mongo-ca.pem
+    # Issue :
+    # 1. requireTLS option bloc mongo-express connection. => Set: preferTLS
+    # 2. setting --replSet rs0, mongo will automatically elect the primary
+    # command: mongod --bind_ip localhost,mongo-2 --port 27019  --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb-2.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+    command: mongod --bind_ip localhost,mongo-2 --port 27019  --tlsMode preferTLS --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb-2.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates --auth --keyFile /opt/mongo/tls/mongodb.keyfile
+  mongo-init-replica:
+    container_name: mongo-init-replica
+    image: mongo
+    command: >
+      bash -c '
+        sleep 10
+        mongosh "mongodb://mongo:27017" --tls --tlsCertificateKeyFile /opt/mongo/tls/certs/mongodb.pem --tlsCAFile /opt/mongo/tls/certs/mongo-ca.pem --tlsAllowInvalidCertificates -u "$JENY_BNC_DATA_MONGO_ROOT_USER" -p "$JENY_BNC_DATA_MONGO_ROOT_PASSWORD" --authenticationDatabase admin --eval "load(\"/opt/mongo/conf/mongo-init.js\")"
+      '
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${JENY_BNC_DATA_MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${JENY_BNC_DATA_MONGO_ROOT_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - ./docker/mongo/tls/certs/mongodb.pem:/opt/mongo/tls/certs/mongodb.pem
+      - ./docker/mongo/tls/certs/mongo-ca.pem:/opt/mongo/tls/certs/mongo-ca.pem
+      - ./docker/mongo/conf/mongo-init.js:/opt/mongo/conf/mongo-init.js
+    depends_on:
+      - mongo
+      - mongo-1
+      - mongo-2
+    networks:
+      - binance-data-provider
+networks:
+  binance-data-provider:
+    name: binance-data-provider
+    # Join existing network
+    #external: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
+          ip_range: 172.19.5.0/24
+          gateway: 172.19.5.254
+          # Auxiliary IPv4 or IPv6 addresses used by Network driver, as a mapping from hostname to IP
+          aux_addresses:
+            host1: 172.19.5.5
+            host2: 172.19.5.6
+            host3: 172.19.5.7
+    labels:
+      com.docker.compose.project: "jeny"

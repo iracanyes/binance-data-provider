@@ -1,0 +1,65 @@
+#!/bin/bash
+
+CONFIG_FILE="/vault/config/config.local.hcl"
+INIT_FILE="/vault/config/.init"
+UNSEAL_KEY_FILE="/vault/config/.unseal_key"
+ROOT_TOKEN_FILE="/vault/config/.root_token"
+KEY_SHARES=5
+KEY_THRESHOLD=3
+VAULT_RETRIES=5
+
+echo "Vault is starting..."
+until vault status > /dev/null 2>&1 || [ "$VAULT_RETRIES" -eq 0 ]; do
+        echo "Waiting for vault to start...: $((VAULT_RETRIES--))"
+        sleep 1
+done
+
+# Function to unseal Vault
+unseal_vault () {
+  filename="${UNSEAL_KEY_FILE}"
+  linecount=0
+  while IFS= read -r line; do
+    linecount=$((linecount+1))
+    echo "$line"
+    vault operator unseal "$line"
+    if [ $linecount -eq "${KEY_THRESHOLD}" ]; then
+      break
+    fi
+  done < "$filename"
+}
+
+
+# Initialize Vault if not already initialized
+# Check if .init file exists and if Vault is not initialized
+if vault status | grep -q -E 'Initialized[[:space:]]+false'; then
+  echo "Vault not initialized, initializing now..."
+  # Initialize Vault and store unseal keys and root token
+  init_result=$(vault operator init -format=json -key-shares="${KEY_SHARES}" -key-threshold="${KEY_THRESHOLD}")
+  echo "${init_result}" > "${INIT_FILE}"
+  {
+    echo "${init_result}" | jq -r '.unseal_keys_b64[0]'
+    echo "${init_result}" | jq -r '.unseal_keys_b64[1]'
+    echo "${init_result}" | jq -r '.unseal_keys_b64[2]'
+    echo "${init_result}" | jq -r '.unseal_keys_b64[3]'
+    echo "${init_result}" | jq -r '.unseal_keys_b64[4]'
+  } >> "${UNSEAL_KEY_FILE}"
+  echo "${init_result}" | jq -r '.root_token' > "${ROOT_TOKEN_FILE}"
+
+  # Unseal Vault
+    unseal_vault
+fi
+
+if vault status | grep -q -E 'Sealed[[:space:]]+true'; then
+  # Unseal Vault
+  unseal_vault
+fi
+
+echo "Authenticating to vault..."
+vault login token="$(cat /vault/config/.root_token)"
+echo "Initializing vault secret engine keyValue V2 named 'jeny'..."
+vault secrets enable -version=2 -path=jeny kv
+echo "Adding entries..."
+vault kv put jeny/test/test_user1 profile.username=test_user1 profile.password=test_password1
+vault kv put jeny/test/test_user2 profile.username=test_user1 profile.password=test_password2
+vault kv put jeny/test/test_user1 state.registration=pending state.account.registration=pending
+echo "Complete..."
